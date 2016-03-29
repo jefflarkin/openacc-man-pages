@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title></title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<p>% OpenACC-Data(7)<br />
+% OpenACC 2.5 Specification<br />
+% October 2015</p>
+<h1 id="name">NAME</h1>
+<p>DATA - DATA construct</p>
+<h1 id="synopsis">SYNOPSIS</h1>
+<h2 id="cc">C/C++</h2>
+<pre><code>#pragma acc data [clause-list]
+[code block]</code></pre>
+<h2 id="fortran">Fortran</h2>
+<pre><code>!$acc data [clause-list]
+[code block]
+!$acc end data</code></pre>
+<h1 id="description">DESCRIPTION</h1>
+<p>The data region defines a region of code in which specified arrays remain<br />
+resident on the accelerator. Data allocation and movement is specified using<br />
+the <code>copy</code>, <code>copyin</code>, <code>copyout</code>, <code>create</code>, <code>present</code>, and <code>deviceptr</code> clauses.<br />
+A data region can be used to enable arrays to be shared by other OpenACC<br />
+regions contained within the data region.</p>
+<h1 id="clauses">CLAUSES</h1>
+<p><code>copy(list)</code>,<code>copyin(list)</code>,<code>copyout(list)</code>,<code>create(list)</code>,<code>present(list)</code>,<code>deviceptr(list)</code></p>
+<ul>
+<li>The above data clauses may be used. See<br />
+ <a href="../openacc-data-clauses">openacc-data-clauses</a> for additional information<br />
+ about data clauses.</li>
+</ul>
+<p><code>if(condition)</code></p>
+<ul>
+<li>If <em>condition</em> evaluates to zero or .FALSE. no data will be allocated on the<br />
+ accelerator device.</li>
+</ul>
+<h1 id="example">EXAMPLE</h1>
+<p>In the examples below two arrays (A and B) are initialized and then 2 * B is<br />
+stored into the A array. The copiler will create space for the A and B arrays<br />
+on the device at the beginning of the data region, copy the values stored in B<br />
+back to the host at the end of the data region, and remove the A and B arrays<br />
+from the device at the end of the data region. The arrays will be used by the<br />
+two parallel loop regions contained within the data region.</p>
+<h2 id="cc-1">C/C++</h2>
+<pre><code>#pragma acc data create(A[:N]) copyout(B[:N])
+{
+  #pragma acc parallel loop
+  for(int i = 0 ; i &lt; N; i++) 
+  {
+    A[i] = 0;
+    B[i] = i;
+  }
+  #pragma acc parallel loop
+  for(int i = 0 ; i &lt; N; i++) 
+  {
+    A[i] = 2 * B[i];
+  }
+}</code></pre>
+<h2 id="fortran-1">Fortran</h2>
+<pre><code>!$acc data create(A) copyout(B)
+!$acc parallel loop
+do i=1,N
+  A(i) = 0
+  B(i) = i
+end do
+!$acc parallel loop
+do i=1,N
+  A(i) = 2 * B(i)
+end do
+!$acc end data</code></pre>
+<h1 id="see-also">SEE ALSO</h1>
+<p><a href="../openacc-data-clauses">openacc-data-clauses</a>,<br />
+<a href="../openacc-enter-data">openacc-enter-data</a>,<br />
+<a href="../openacc-exit-data">openacc-exit-data</a></p>
+</body>
+</html>

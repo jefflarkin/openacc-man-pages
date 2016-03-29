@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title></title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<p>% OpenACC-Parallel(7)<br />
+% OpenACC 2.5 Specification<br />
+% October 2015</p>
+<h1 id="name">NAME</h1>
+<p>PARALLEL - PARALLEL construct</p>
+<h1 id="synopsis">SYNOPSIS</h1>
+<h2 id="cc">C/C++</h2>
+<pre><code>#pragma acc parallel [clause-list]
+[code block]</code></pre>
+<h2 id="fortran">Fortran</h2>
+<pre><code>!$acc parallel [clause-list]
+[code block]
+!$acc end parallel</code></pre>
+<h1 id="description">DESCRIPTION</h1>
+<p>The parallel construct launches one or more <em>gangs</em> on the accelerator executing<br />
+the contained region. Each <em>gang</em> will have one or more <em>workers</em>, each<br />
+executing a <em>vector</em> or SIMD operation. The parallel construct is most<br />
+frequently paired with a loop construct as <code>acc parallel loop</code>, which<br />
+declares that the iterations of the loop that immediately follows should be<br />
+distributed among the gangs and run in parallel. Additionally the compiler will<br />
+analyze the code to determine the data that must be relocated to and from the<br />
+accelerator in order to correctly execute the region.</p>
+<h1 id="clauses">CLAUSES</h1>
+<p><code>async[(async-id)]</code></p>
+<ul>
+<li>Specifies that the parallel region should run asynchronously with the<br />
+ encountering host thread. The optional <em>async-id</em> parameter specifies the<br />
+ asynchronous work queue into which the parallel region and all associated data<br />
+ migration will be placed. It is the programmer's responsibility to later<br />
+ <em>wait</em> on any work made asynchronous to avoid accessing stale data on the<br />
+ host.</li>
+</ul>
+<p><code>wait[(async-id)]</code></p>
+<ul>
+<li>Specifies that the parallel region must wait on previously generated<br />
+ asynchronous work before starting execution. If the optional <em>async-id</em><br />
+ parameter is provided, the region will wait on the corresponding asynchronous<br />
+ work queue. If no <em>async-id</em> parameter is provided the region will wait on<br />
+ all previously generated asynchronous operations.</li>
+</ul>
+<p><code>if(condition)</code></p>
+<ul>
+<li>When the <em>condition</em> is nonzero or .TRUE. the parallel region will<br />
+ execute on the accelerator; otherwise, the region will be executed on the<br />
+ host by the encountering thread.</li>
+</ul>
+<p><code>device_type(type)</code></p>
+<ul>
+<li>Any clauses that follow a <code>device_type</code> clause will only apply to a device of<br />
+ the given type. When <code>*</code> is the type, then clauses apply to all other device<br />
+ types not specified in another <code>device_type</code> clause. The <code>device_type</code> clause<br />
+ may be abbreviated <code>dtype</code>.</li>
+</ul>
+<p><code>copy(list)</code>,<code>copyin(list)</code>,<code>copyout(list)</code>,<code>create(list)</code>,<code>present(list)</code>,<code>deviceptr(list)</code></p>
+<ul>
+<li>The above data clauses may be used. See<br />
+ <a href="../openacc-data-clauses">openacc-data-clauses</a> for additional information<br />
+ about data clauses.</li>
+</ul>
+<h1 id="example">EXAMPLE</h1>
+<p>In the examples below two arrays (A and B) are initialized and then 2 * B is<br />
+stored into the A array. The compiler will generate an accelerator kernel to<br />
+execute the loops contained within the region. The loop directive is also<br />
+shown, demonstrating how to specify which loops should be parallelized. It is<br />
+the compiler's responsibility to insert any syncronization necessary between<br />
+the two contained loops to ensure correctness.</p>
+<p><em>Note:</em> A more common approach may be to use two <code>acc parallel loop</code> combined<br />
+directives, one on each loop, rather than a single parallel region with two<br />
+distinct loop directives.</p>
+<h2 id="cc-1">C/C++</h2>
+<pre><code>#pragma acc parallel
+{
+  #pragma acc loop
+  for(int i = 0 ; i &lt; N; i++) 
+  {
+    A[i] = 0;
+    B[i] = i;
+  }
+  #pragma acc loop
+  for(int i = 0 ; i &lt; N; i++) 
+  {
+    A[i] = 2 * B[i];
+  }
+}</code></pre>
+<h2 id="fortran-1">Fortran</h2>
+<pre><code>!$acc parallel
+!$acc loop
+do i=1,N
+  A(i) = 0
+  B(i) = i
+end do
+!$acc loop
+do i=1,N
+  A(i) = 2 * B(i)
+end do
+!$acc end parallel</code></pre>
+<h1 id="see-also">SEE ALSO</h1>
+<p><a href="../openacc-data-clauses.7">openacc-data-clauses</a>,<br />
+<a href="../openacc-kernels.7">openacc-kernels</a>,<br />
+<a href="../openacc-loop.7">openacc-loop</a></p>
+</body>
+</html>

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title></title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<p>% OpenACC-Kernels(7)<br />
+% OpenACC 2.5 Specification<br />
+% October 2015</p>
+<h1 id="name">NAME</h1>
+<p>KERNELS - KERNELS construct</p>
+<h1 id="synopsis">SYNOPSIS</h1>
+<h2 id="cc">C/C++</h2>
+<pre><code>#pragma acc kernels [clause-list]
+[code block]</code></pre>
+<h2 id="fortran">Fortran</h2>
+<pre><code>!$acc kernels [clause-list]
+[code block]
+!$acc end kernels</code></pre>
+<h1 id="description">DESCRIPTION</h1>
+<p>The KERNELS construct identifies a region of code in which an OpenACC compiler<br />
+should perform analysis to identify loops that should be parallelized into<br />
+accelerator kernels. The compiler must also identify data structures that<br />
+require relocation to and/or from the accelerator during the execution of the<br />
+region on the accelerator to obtain correct results.</p>
+<h1 id="clauses">CLAUSES</h1>
+<p><code>async[(async-id)]</code></p>
+<ul>
+<li>Specifies that the kernels region should run asynchronously with the<br />
+ encountering host thread. The optional <em>async-id</em> parameter specifies the<br />
+ asynchronous work queue into which the kernels region and all associated data<br />
+ migration will be placed. It is the programmer's responsibility to later<br />
+ <em>wait</em> on any work made asynchronous to avoid accessing stale data on the<br />
+ host.</li>
+</ul>
+<p><code>wait[(async-id)]</code></p>
+<ul>
+<li>Specifies that the kernels region must wait on previously generated<br />
+ asynchronous work before starting execution. If the optional <em>async-id</em><br />
+ parameter is provided, the region will wait on the corresponding asynchronous<br />
+ work queue. If no <em>async-id</em> parameter is provided the region will wait on<br />
+ all previously generated asynchronous operations.</li>
+</ul>
+<p><code>if(condition)</code></p>
+<ul>
+<li>When the <em>condition</em> is nonzero or .TRUE. the kernels region will<br />
+ execute on the accelerator; otherwise, the region will be executed on the<br />
+ host by the encountering thread.</li>
+</ul>
+<p><code>default(none|present)</code></p>
+<ul>
+<li>Prevents the compiler from implicitly determining the data attributes of<br />
+ variables contained within the region. When <em>none</em> is specified, the<br />
+ programmer must specify all data attributes. When <em>present</em> is specified, the<br />
+ compiler may assume that all data is already present on the device.</li>
+</ul>
+<p><code>device_type(type)</code></p>
+<ul>
+<li>Any clauses that follow a <code>device_type</code> clause will only apply to a device of<br />
+ the given type. When <code>*</code> is the type, then clauses apply to all other device<br />
+ types not specified in another <code>device_type</code> clause. The <code>device_type</code> clause<br />
+ may be abbreviated <code>dtype</code>.</li>
+</ul>
+<p><code>copy(list)</code>,<code>copyin(list)</code>,<code>copyout(list)</code>,<code>create(list)</code>,<code>present(list)</code>,<code>deviceptr(list)</code></p>
+<ul>
+<li>The above data clauses may be used. See<br />
+ <a href="../openacc-data-clauses">openacc-data-clauses</a> for additional information<br />
+ about data clauses.</li>
+</ul>
+<h1 id="example">EXAMPLE</h1>
+<p>In the examples below two arrays (A and B) are initialized and then 2 * B is<br />
+stored into the A array. The compiler will analyze the code contained within<br />
+the kernels region for parallelism and will generate 1 or more accelerator<br />
+kernels for the contained loops.</p>
+<h2 id="cc-1">C/C++</h2>
+<pre><code>#pragma acc kernels
+{
+  for(int i = 0 ; i &lt; N; i++) 
+  {
+    A[i] = 0;
+    B[i] = i;
+  }
+  for(int i = 0 ; i &lt; N; i++) 
+  {
+    A[i] = 2 * B[i];
+  }
+}</code></pre>
+<h2 id="fortran-1">Fortran</h2>
+<p><em>Note:</em> Fortran array syntax may be used within a kernels region, resulting in<br />
+a kernel for the implicit loop for the array operation.</p>
+<pre><code>!$acc kernels
+A(:) = 0
+do i=1,N
+  B(i) = i
+end do
+do i=1,N
+  A(i) = 2 * B(i)
+end do
+!$acc end kernels</code></pre>
+<h1 id="see-also">SEE ALSO</h1>
+<p><a href="../openacc-data-clauses.7">openacc-data-clauses</a>,<br />
+<a href="../openacc-parallel.7">openacc-parallel</a><br />
+<a href="../openacc-loop.7">openacc-loop</a></p>
+</body>
+</html>
